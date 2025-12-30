@@ -1,3 +1,76 @@
+# name: Full run
+
+# on:
+#   push:
+#     branches: ["main"]
+#   pull_request:
+#   workflow_dispatch:
+
+# jobs:
+#   build-cache:
+#     permissions:
+#       contents: read
+#       actions: write
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Set up Docker Buildx
+#         id: buildx
+#         uses: docker/setup-buildx-action@v3
+
+#       - name: Save builder ID to environment
+#         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+#       - name: Debug buildx
+#         run: |
+#           echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+#           docker buildx ls
+#           docker buildx inspect "$BUILDX_BUILDER_ID"
+
+#       - name: Build (populate cache) via Makefile
+#         run: make build
+
+#   say:
+#     needs: build-cache
+#     permissions:
+#       contents: read
+#       actions: read
+#     runs-on: ubuntu-latest
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         phrase:
+#           - "Hello world from job one"
+#           - "Parallel cows say moo"
+#           - "Cache makes this fast"
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Set up Docker Buildx
+#         id: buildx
+#         uses: docker/setup-buildx-action@v3
+
+#       - name: Save builder ID to environment
+#         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+#       - name: Debug buildx
+#         run: |
+#           echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+#           docker buildx ls
+#           docker buildx inspect "$BUILDX_BUILDER_ID"
+
+#       - name: Build (restore cache) via Makefile
+#         run: make build
+
+#       - name: Run via Makefile
+#         env:
+#           ARGS: ${{ matrix.phrase }}
+#         run: make run
+
 name: Full run
 
 on:
@@ -19,18 +92,30 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Save builder ID to environment
-        run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+        with:
+          # optional, but makes debugging consistent
+          install: true
 
       - name: Debug buildx
         run: |
-          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+          echo "builder=${{ steps.buildx.outputs.name }}"
           docker buildx ls
-          docker buildx inspect "$BUILDX_BUILDER_ID"
+          docker buildx inspect "${{ steps.buildx.outputs.name }}"
 
-      - name: Build (populate cache) via Makefile
-        run: make build
+      # Populates the GitHub Actions cache (no need to push/load an image here)
+      - name: Build (populate cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64
+          tags: reverse-cow:cache-warm
+          # Not needed in this job unless you want to run it here
+          push: false
+          load: false
+          cache-from: type=gha,scope=reverse-cow
+          cache-to: type=gha,scope=reverse-cow,mode=max
 
   say:
     needs: build-cache
@@ -53,20 +138,31 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Save builder ID to environment
-        run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+        with:
+          install: true
 
       - name: Debug buildx
         run: |
-          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+          echo "builder=${{ steps.buildx.outputs.name }}"
           docker buildx ls
-          docker buildx inspect "$BUILDX_BUILDER_ID"
+          docker buildx inspect "${{ steps.buildx.outputs.name }}"
 
-      - name: Build (restore cache) via Makefile
-        run: make build
+      # Restores cache + builds image and loads it into the Docker engine
+      - name: Build (restore cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64
+          tags: reverse-cow:local
+          push: false
+          load: true
+          cache-from: type=gha,scope=reverse-cow
+          # Optional: you can omit cache-to here if you only want job1 to write
+          cache-to: type=gha,scope=reverse-cow,mode=max
 
-      - name: Run via Makefile
-        env:
-          ARGS: ${{ matrix.phrase }}
-        run: make run
+      # Equivalent of `make run` (run the image you just loaded)
+      - name: Run
+        run: |
+          docker run --rm reverse-cow:local ${{ matrix.phrase }}
