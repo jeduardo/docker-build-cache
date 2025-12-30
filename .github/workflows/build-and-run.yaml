@@ -8,6 +8,9 @@ on:
 
 jobs:
   build-cache:
+    permissions:
+      contents: read
+      actions: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +24,9 @@ jobs:
 
   say:
     needs: build-cache
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
