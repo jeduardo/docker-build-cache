@@ -25,9 +25,9 @@ jobs:
 
       - name: Debug buildx
         run: |
-          echo "BUILDX_BUILDER=$BUILDX_BUILDER"
+          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
           docker buildx ls
-          docker buildx inspect "$BUILDX_BUILDER"
+          docker buildx inspect "$BUILDX_BUILDER_ID"
 
       - name: Build (populate cache) via Makefile
         run: make build
