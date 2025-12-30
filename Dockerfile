@@ -5,8 +5,6 @@ FROM --platform=$BUILDPLATFORM golang:1.25 AS build
 ARG TARGETARCH
 ARG TARGETOS
 
-WORKDIR /workspace
-
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 ENV GOOS=${TARGETOS}
@@ -14,9 +12,20 @@ ENV GOARCH=${TARGETARCH}
 
 WORKDIR /src
 
-RUN --mount=target=. \
+# 1) Copy only module files first (stable cache key)
+COPY go.mod go.sum ./
+
+# 2) Download deps (cached by go.mod/go.sum + cache mounts)
+RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
   --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
-  --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
+  go mod download
+
+# 3) Copy the rest of the source
+COPY . .
+
+# 4) Build (reuses the same caches)
+RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
+  --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
   go build -trimpath -o /out/reverse-cow ./
 
 # Packaging stage
