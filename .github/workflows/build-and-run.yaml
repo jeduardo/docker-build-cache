@@ -1,0 +1,46 @@
+name: Full run
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (populate cache) via Makefile
+        run: make build
+
+  say:
+    needs: build-cache
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        phrase:
+          - "Hello world from job one"
+          - "Parallel cows say moo"
+          - "Cache makes this fast"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (restore cache) via Makefile
+        run: make build
+
+      - name: Run via Makefile
+        env:
+          ARGS: ${{ matrix.phrase }}
+        run: make run
