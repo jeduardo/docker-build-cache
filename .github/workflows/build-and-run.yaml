@@ -23,6 +23,12 @@ jobs:
       - name: Save builder ID to environment
         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
 
+      - name: Debug buildx
+        run: |
+          echo "BUILDX_BUILDER=$BUILDX_BUILDER"
+          docker buildx ls
+          docker buildx inspect "$BUILDX_BUILDER"
+
       - name: Build (populate cache) via Makefile
         run: make build
 
