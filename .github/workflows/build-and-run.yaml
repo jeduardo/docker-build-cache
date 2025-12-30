@@ -92,9 +92,6 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          # optional, but makes debugging consistent
-          install: true
 
       - name: Debug buildx
         run: |
@@ -138,8 +135,6 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          install: true
 
       - name: Debug buildx
         run: |
@@ -159,8 +154,6 @@ jobs:
           push: false
           load: true
           cache-from: type=gha,scope=reverse-cow
-          # Optional: you can omit cache-to here if you only want job1 to write
-          cache-to: type=gha,scope=reverse-cow,mode=max
 
       # Equivalent of `make run` (run the image you just loaded)
       - name: Run
