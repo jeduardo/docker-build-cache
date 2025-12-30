@@ -51,7 +51,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Save builder ID to environment
+        run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+      - name: Debug buildx
+        run: |
+          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+          docker buildx ls
+          docker buildx inspect "$BUILDX_BUILDER_ID"
 
       - name: Build (restore cache) via Makefile
         run: make build
