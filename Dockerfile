@@ -1,9 +1,9 @@
-# syntax=docker/dockerfile:1.7
-
 # Builder stage
 FROM --platform=$BUILDPLATFORM golang:1.25 AS build
 ARG TARGETARCH
 ARG TARGETOS
+
+WORKDIR /workspace
 
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
@@ -12,32 +12,19 @@ ENV GOARCH=${TARGETARCH}
 
 WORKDIR /src
 
-# 1) Copy only module files first (stable cache key)
-COPY go.mod go.sum ./
-
-# 2) Download deps (cached by go.mod/go.sum + cache mounts)
-RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
-  --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
-  go mod download
-
-# Optional: make sure build-time deps are present
-RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
-  --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
-  go list -deps ./... >/dev/null
-
-# 3) Copy the rest of the source
-COPY . .
-
-# 4) Build (reuses the same caches)
-RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
-  --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
+RUN --mount=target=. \
+  --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg/mod \
   go build -trimpath -o /out/reverse-cow ./
 
 # Packaging stage
 FROM gcr.io/distroless/static-debian13:nonroot
 
+# A conventional working directory for mounts
 WORKDIR /work
+
 COPY --from=build /out/reverse-cow /reverse-cow
 
 USER nonroot:nonroot
 ENTRYPOINT ["/reverse-cow"]
+

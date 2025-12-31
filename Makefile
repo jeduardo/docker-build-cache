@@ -9,8 +9,6 @@ ifeq ($(GITHUB_ACTIONS),true)
     --progress=plain \
     --builder "$(BUILDX_BUILDER_ID)" \
     --platform $(PLATFORM) \
-    --cache-from type=gha,scope=reverse-cow \
-    --cache-to type=gha,mode=max,scope=reverse-cow \
     -t $(IMAGE_NAME) .
 else
   BUILD_CMD = DOCKER_BUILDKIT=1 $(DOCKER) build -t $(IMAGE_NAME) .
