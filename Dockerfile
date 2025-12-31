@@ -20,6 +20,11 @@ RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},targe
   --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
   go mod download
 
+# Optional: make sure build-time deps are present
+RUN --mount=type=cache,id=reverse-cow-gomodcache-${TARGETOS}-${TARGETARCH},target=/go/pkg/mod \
+  --mount=type=cache,id=reverse-cow-gobuildcache-${TARGETOS}-${TARGETARCH},target=/root/.cache/go-build \
+  go list -deps ./... >/dev/null
+
 # 3) Copy the rest of the source
 COPY . .
 
