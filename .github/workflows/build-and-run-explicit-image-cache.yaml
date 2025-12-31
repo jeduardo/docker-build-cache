@@ -1,0 +1,75 @@
+name: Build and run using explicit image caching
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    build-cache:
+        permissions:
+            contents: read
+            actions: write
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              id: buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Save builder ID to environment
+              run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+            - name: Build (populate cache) via Makefile
+              run: make build
+
+            # Export the *built image* to a tarball and upload it
+            - name: Export image to tarball
+              run: |
+                  docker image ls
+                  docker save reverse-cow:latest | gzip -1 > reverse-cow.tar.gz
+                  ls -lh reverse-cow.tar.gz
+
+            - name: Upload image artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: reverse-cow-image
+                  path: reverse-cow.tar.gz
+                  retention-days: 1
+
+    say:
+        needs: build-cache
+        permissions:
+            contents: read
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                phrase:
+                    - "Hello world from job one"
+                    - "Parallel cows say moo"
+                    - "Cache makes this fast"
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # Download + load the image built in the previous job
+            - name: Download image artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: reverse-cow-image
+
+            - name: Load image into Docker
+              run: |
+                  ls -lh reverse-cow.tar.gz
+                  gunzip -c reverse-cow.tar.gz | docker load
+                  docker image ls | grep reverse-cow || true
+
+            - name: Run via Makefile
+              env:
+                  ARGS: ${{ matrix.phrase }}
+              run: make run
