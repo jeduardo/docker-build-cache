@@ -1,4 +1,4 @@
-name: Build and run using GHA Cache through actions
+name: Images into cache through actions
 
 on:
   # push:

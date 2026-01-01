@@ -1,4 +1,4 @@
-name: Build and run using GHA Cache through make
+name: Images into cache through make
 
 on:
   # push:
