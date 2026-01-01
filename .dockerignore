@@ -1,0 +1,12 @@
+.git
+.github
+.gitignore
+.idea
+.vscode
+.DS_Store
+bin
+dist
+out
+tmp
+*.log
+*.md
