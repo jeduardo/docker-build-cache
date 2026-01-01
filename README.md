@@ -8,6 +8,8 @@ which is then reused in different stages.
 Using the make commands did not work to store anything into the cache, no matter
 which invocation or configuration used.
 
+This is because the GHA backend [makes use of some environment variables](https://docs.docker.com/build/cache/backends/gha/) for authentication, but these [are not exposed](https://github.com/actions/runner/issues/3046) to actions other than `nodejs` and `docker`.
+
 ## Experiment 2 - gha Docker Backend and official actions
 
 Using the actions and adding scopes worked to some extent, with layers added to

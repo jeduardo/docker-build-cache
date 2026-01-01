@@ -21,24 +21,18 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            env.ACTIONS_RUNTIME_TOKEN
-            env.ACTIONS_RESULTS_URL
 
       - name: Save builder ID to environment
         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
-
-      - name: Verify GHA cache env
-        run: |
-          test -n "$ACTIONS_RUNTIME_TOKEN"
-          test -n "$ACTIONS_RESULTS_URL"
 
       - name: Debug buildx
         run: |
           echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
           docker buildx ls
           docker buildx inspect "$BUILDX_BUILDER_ID"
+
+      - name: Expose GitHub runtime for BuildKit GHA cache
+        uses: crazy-max/ghaction-github-runtime@v3
 
       - name: Build (populate cache) via Makefile
         run: |
@@ -68,24 +62,18 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            env.ACTIONS_RUNTIME_TOKEN
-            env.ACTIONS_RESULTS_URL
 
       - name: Save builder ID to environment
         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
-
-      - name: Verify GHA cache env
-        run: |
-          test -n "$ACTIONS_RUNTIME_TOKEN"
-          test -n "$ACTIONS_RESULTS_URL"
 
       - name: Debug buildx
         run: |
           echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
           docker buildx ls
           docker buildx inspect "$BUILDX_BUILDER_ID"
+
+      - name: Expose GitHub runtime for BuildKit GHA cache
+        uses: crazy-max/ghaction-github-runtime@v3
 
       - name: Build (restore cache) via Makefile
         run: make build
