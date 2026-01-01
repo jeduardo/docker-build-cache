@@ -12,11 +12,13 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-latest
-    env:
-      CACHE_SCOPE: ${{ github.workflow }}-${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set cache scope
+        id: cache-scope
+        uses: ./.github/actions/set-docker-cache-scope
 
       - name: Set up Docker Buildx
         id: buildx
@@ -43,8 +45,6 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-latest
-    env:
-      CACHE_SCOPE: ${{ github.workflow }}-${{ github.ref_name }}
     strategy:
       fail-fast: false
       matrix:
@@ -56,6 +56,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set cache scope
+        id: cache-scope
+        uses: ./.github/actions/set-docker-cache-scope
 
       - name: Set up Docker Buildx
         id: buildx

@@ -1,0 +1,18 @@
+name: Set docker cache scope
+description: Generate a safe cache scope from workflow and ref name.
+outputs:
+  cache_scope:
+    description: Sanitized cache scope value.
+    value: ${{ steps.scope.outputs.cache_scope }}
+runs:
+  using: composite
+  steps:
+    - id: scope
+      shell: bash
+      run: |
+        workflow="${GITHUB_WORKFLOW// /-}"
+        workflow="${workflow//\//-}"
+        ref="${GITHUB_REF_NAME//\//-}"
+        cache_scope="${workflow}-${ref}"
+        echo "cache_scope=${cache_scope}" >> "$GITHUB_OUTPUT"
+        echo "CACHE_SCOPE=${cache_scope}" >> "$GITHUB_ENV"
