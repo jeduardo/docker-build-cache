@@ -12,6 +12,8 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-latest
+    env:
+      CACHE_SCOPE: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,6 +44,8 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    env:
+      CACHE_SCOPE: ${{ github.ref_name }}
     strategy:
       fail-fast: false
       matrix:

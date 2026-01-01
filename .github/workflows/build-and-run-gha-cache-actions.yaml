@@ -12,6 +12,8 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-latest
+    env:
+      CACHE_SCOPE: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +34,8 @@ jobs:
           # Not needed in this job unless you want to run it here
           push: false
           load: false
-          cache-from: type=gha,scope=reverse-cow
-          cache-to: type=gha,scope=reverse-cow,mode=max
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          cache-to: type=gha,scope=${{ env.CACHE_SCOPE }},mode=max
 
   say:
     needs: build-cache
@@ -41,6 +43,8 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-latest
+    env:
+      CACHE_SCOPE: ${{ github.ref_name }}
     strategy:
       fail-fast: false
       matrix:
@@ -68,7 +72,7 @@ jobs:
           tags: reverse-cow:local
           push: false
           load: true
-          cache-from: type=gha,scope=reverse-cow
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
 
       # Equivalent of `make run` (run the image you just loaded)
       - name: Run
