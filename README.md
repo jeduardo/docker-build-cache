@@ -21,3 +21,11 @@ to prevent a re-download and re-compilation of transient golang dependencies.
 This is the one that worked best: building the image in the first step, exporting it, and then reloading into the runner before running the test is what
 allowed reusing the image across steps without needing to use any cache in an
 actual registry. Setting the retention time for the artifact to one day allow for quick expiration of these temporary artifacts.
+
+## Docker cache optimisation for golang
+
+The intention is that the GHA caches are used across the same workflow in the same branch, but not shared by different branches or different workflows. For this reason, an action is used to compute an individual docker cache scope that is reused across each workflow, where needed.
+
+Caches were not being properly reused while the local directory was mounted inside the container, so the build is split in a step that downloads the dependencies, and another step that compiles the binary.
+
+Both these changes resulted in reuse of cache layers across different workflow steps.
