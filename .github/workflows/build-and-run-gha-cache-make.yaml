@@ -13,7 +13,8 @@ jobs:
       actions: write
     runs-on: ubuntu-latest
     env:
-      CACHE_SCOPE: ${{ github.ref_name }}
+      CACHE_SCOPE: ${{ github.workflow }}-${{ github.ref_name }}
+      ENABLE_GHA_CACHE_SAVE: "true"
       ENABLE_GHA_BACKEND: "true"
     steps:
       - name: Checkout
@@ -37,7 +38,8 @@ jobs:
       actions: read
     runs-on: ubuntu-latest
     env:
-      CACHE_SCOPE: ${{ github.ref_name }}
+      CACHE_SCOPE: ${{ github.workflow }}-${{ github.ref_name }}
+      ENABLE_GHA_CACHE_SAVE: "false"
       ENABLE_GHA_BACKEND: "true"
     strategy:
       fail-fast: false
