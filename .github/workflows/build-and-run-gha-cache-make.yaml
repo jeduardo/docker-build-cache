@@ -27,7 +27,6 @@ jobs:
 
       - name: Build (populate cache) via Makefile
         run: |
-          env | sort
           make build
 
   say:
