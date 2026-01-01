@@ -32,7 +32,9 @@ jobs:
           docker buildx inspect "$BUILDX_BUILDER_ID"
 
       - name: Build (populate cache) via Makefile
-        run: make build
+        run: |
+          env
+          make build
 
   say:
     needs: build-cache
