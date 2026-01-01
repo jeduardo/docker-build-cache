@@ -22,14 +22,11 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Save builder ID to environment
-        run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
-
       - name: Debug buildx
         run: |
-          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+          echo "builder=${{ steps.buildx.outputs.name }}"
           docker buildx ls
-          docker buildx inspect "$BUILDX_BUILDER_ID"
+          docker buildx inspect "${{ steps.buildx.outputs.name }}"
 
       - name: Expose GitHub runtime for BuildKit GHA cache
         uses: crazy-max/ghaction-github-runtime@v3
@@ -63,14 +60,11 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Save builder ID to environment
-        run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
-
       - name: Debug buildx
         run: |
-          echo "BUILDX_BUILDER_ID=$BUILDX_BUILDER_ID"
+          echo "builder=${{ steps.buildx.outputs.name }}"
           docker buildx ls
-          docker buildx inspect "$BUILDX_BUILDER_ID"
+          docker buildx inspect "${{ steps.buildx.outputs.name }}"
 
       - name: Expose GitHub runtime for BuildKit GHA cache
         uses: crazy-max/ghaction-github-runtime@v3

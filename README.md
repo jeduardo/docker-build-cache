@@ -8,7 +8,7 @@ which is then reused in different stages.
 Using the make commands did not work to store anything into the cache, no matter
 which invocation or configuration used.
 
-This is because the GHA backend [makes use of some environment variables](https://docs.docker.com/build/cache/backends/gha/) for authentication, but these [are not exposed](https://github.com/actions/runner/issues/3046) to actions other than `nodejs` and `docker`.
+This is because the GHA backend [makes use of some environment variables](https://docs.docker.com/build/cache/backends/gha/) for authentication, but these [are not exposed](https://github.com/actions/runner/issues/3046) to actions other than `nodejs` and `docker`. It is possible to work around this by using [this action](https://github.com/crazy-max/ghaction-github-runtime) to expose these variables to the build. After this is done, the gha backend works as expected.
 
 ## Experiment 2 - gha Docker Backend and official actions
 
