@@ -21,9 +21,18 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            env.ACTIONS_RUNTIME_TOKEN
+            env.ACTIONS_RESULTS_URL
 
       - name: Save builder ID to environment
         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+      - name: Verify GHA cache env
+        run: |
+          test -n "$ACTIONS_RUNTIME_TOKEN"
+          test -n "$ACTIONS_RESULTS_URL"
 
       - name: Debug buildx
         run: |
@@ -59,9 +68,18 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            env.ACTIONS_RUNTIME_TOKEN
+            env.ACTIONS_RESULTS_URL
 
       - name: Save builder ID to environment
         run: echo "BUILDX_BUILDER_ID=${{ steps.buildx.outputs.name }}" >> "$GITHUB_ENV"
+
+      - name: Verify GHA cache env
+        run: |
+          test -n "$ACTIONS_RUNTIME_TOKEN"
+          test -n "$ACTIONS_RESULTS_URL"
 
       - name: Debug buildx
         run: |
