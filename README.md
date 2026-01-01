@@ -29,3 +29,13 @@ The intention is that the GHA caches are used across the same workflow in the sa
 Caches were not being properly reused while the local directory was mounted inside the container, so the build is split in a step that downloads the dependencies, and another step that compiles the binary.
 
 Both these changes resulted in reuse of cache layers across different workflow steps.
+
+## Results
+
+Exporting the image as a build artifact to be reused proved to be the fastest and arguably simpler way to do it.
+
+Runtimes with clean caches:
+
+- Build using actions and GH cache: ~1m4s
+- Build using make and GH cache: ~1m5s
+- Build using artifact storage: ~43s
