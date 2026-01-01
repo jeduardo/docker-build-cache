@@ -12,6 +12,8 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-latest
+    env:
+      ENABLE_GHA_BACKEND: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +40,8 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-latest
+    env:
+      ENABLE_GHA_BACKEND: "true"
     strategy:
       fail-fast: false
       matrix:
