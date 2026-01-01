@@ -33,7 +33,7 @@ jobs:
 
       - name: Build (populate cache) via Makefile
         run: |
-          env
+          env | sort
           make build
 
   say:
