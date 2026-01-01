@@ -29,14 +29,14 @@ jobs:
       - name: Export image to tarball
         run: |
           docker image ls
-          docker save reverse-cow:latest | gzip -1 > reverse-cow.tar.gz
-          ls -lh reverse-cow.tar.gz
+          docker save reverse-cow:latest > reverse-cow.tar
+          ls -lh reverse-cow.tar
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
           name: reverse-cow-image
-          path: reverse-cow.tar.gz
+          path: reverse-cow.tar
           retention-days: 1
 
   say:
@@ -66,8 +66,8 @@ jobs:
 
       - name: Load image into Docker
         run: |
-          ls -lh reverse-cow.tar.gz
-          gunzip -c reverse-cow.tar.gz | docker load
+          ls -lh reverse-cow.tar
+          docker load < reverse-cow.tar
           docker image ls | grep reverse-cow || true
 
       - name: Run via Makefile
