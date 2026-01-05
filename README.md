@@ -16,11 +16,11 @@ Using the actions and adding scopes worked to some extent, with layers added to
 the GHA cache. However, the restored cache across workflow steps was not enough
 to prevent a re-download and re-compilation of transient golang dependencies.
 
-## Experiment 3 - Export an image as artifact and reload it
+## Experiment 3 - Export an image as artefact and reload it
 
 This is the one that worked best: building the image in the first step, exporting it, and then reloading into the runner before running the test is what
 allowed reusing the image across steps without needing to use any cache in an
-actual registry. Setting the retention time for the artifact to one day allow for quick expiration of these temporary artifacts.
+actual registry. Setting the retention time for the artefact to one day allow for quick expiration of these temporary artefacts.
 
 ## Docker cache optimisation for golang
 
@@ -32,10 +32,10 @@ Both these changes resulted in reuse of cache layers across different workflow s
 
 ## Results
 
-Exporting the image as a build artifact to be reused proved to be the fastest and arguably simpler way to do it.
+Exporting the image as a build artefact to be reused proved to be the fastest and arguably simpler way to do it.
 
 Runtimes with clean caches:
 
 - Build using actions and GH cache: ~1m4s
 - Build using make and GH cache: ~1m5s
-- Build using artifact storage: ~43s
+- Build using artefact storage: ~43s
