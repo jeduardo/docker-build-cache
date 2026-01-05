@@ -24,6 +24,19 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Run unit tests in Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64
+          target: test
+          push: false
+          load: false
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          cache-to: type=gha,scope=${{ env.CACHE_SCOPE }},mode=max
+
       # Populates the GitHub Actions cache (no need to push/load an image here)
       - name: Build (populate cache)
         uses: docker/build-push-action@v6
@@ -33,20 +46,6 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/amd64
           tags: reverse-cow:cache-warm
-          # Not needed in this job unless you want to run it here
-          push: false
-          load: false
-          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
-          cache-to: type=gha,scope=${{ env.CACHE_SCOPE }},mode=max
-
-      - name: Run unit tests in Docker
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
-          platforms: linux/amd64
-          target: test
           push: false
           load: false
           cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
