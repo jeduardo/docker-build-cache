@@ -31,6 +31,8 @@ ifeq ($(GITHUB_ACTIONS),true)
     BUILD_CMD = $(DOCKER) buildx build --load \
       --platform $(PLATFORM) \
       --build-arg CACHE_SCOPE=$(CACHE_SCOPE) \
+      $(LOCAL_CACHE_FROM) \
+      $(LOCAL_CACHE_TO) \
       -t $(IMAGE_NAME) .
   endif
 else
