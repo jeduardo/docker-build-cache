@@ -8,6 +8,14 @@ ENABLE_GHA_CACHE_SAVE ?= false
 
 # Selecting the build command depending on whether it's on CI or not
 ifeq ($(GITHUB_ACTIONS),true)
+  LOCAL_CACHE_FROM :=
+  LOCAL_CACHE_TO :=
+  ifeq ($(ENABLE_LOCAL_CACHE),true)
+    ifneq ($(wildcard $(CACHE_DIR)/index.json),)
+      LOCAL_CACHE_FROM = --cache-from type=local,src=$(CACHE_DIR)
+    endif
+    LOCAL_CACHE_TO = --cache-to type=local,dest=$(CACHE_DIR),mode=max
+  endif
   ifeq ($(ENABLE_GHA_BACKEND),true)
     BUILD_CMD = $(DOCKER) buildx build --load \
       --platform $(PLATFORM) \
@@ -16,10 +24,8 @@ ifeq ($(GITHUB_ACTIONS),true)
     ifeq ($(ENABLE_GHA_CACHE_SAVE),true)
       BUILD_CMD += --cache-to type=gha,mode=max
     endif
-    ifeq ($(ENABLE_LOCAL_CACHE),true)
-      BUILD_CMD += --cache-from type=local,src=$(CACHE_DIR)
-      BUILD_CMD += --cache-to type=local,dest=$(CACHE_DIR),mode=max
-    endif
+    BUILD_CMD += $(LOCAL_CACHE_FROM)
+    BUILD_CMD += $(LOCAL_CACHE_TO)
     BUILD_CMD += -t $(IMAGE_NAME) .
   else
     BUILD_CMD = $(DOCKER) buildx build --load \
@@ -55,8 +61,8 @@ test-docker:
 		$(DOCKER) buildx build \
 			--platform $(PLATFORM) \
 			--build-arg CACHE_SCOPE=$(CACHE_SCOPE) \
-			--cache-from type=local,src=$(CACHE_DIR) \
-			--cache-to type=local,dest=$(CACHE_DIR),mode=max \
+			$(LOCAL_CACHE_FROM) \
+			$(LOCAL_CACHE_TO) \
 			--target test \
 			.; \
 	else \
