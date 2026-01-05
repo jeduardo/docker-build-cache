@@ -13,6 +13,7 @@ jobs:
       actions: write
     runs-on: ubuntu-latest
     env:
+      CACHE_DIR: .buildx-cache
       ENABLE_LOCAL_CACHE: "true"
     steps:
       - name: Checkout
@@ -31,6 +32,13 @@ jobs:
 
       - name: Build (populate cache) via Makefile
         run: make build
+
+      - name: Upload buildx cache artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildx-cache
+          path: ${{ env.CACHE_DIR }}
+          retention-days: 1
 
       # Export the *built image* to a tarball and upload it
       - name: Export image to tarball
@@ -51,6 +59,9 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    env:
+      CACHE_DIR: .buildx-cache
+      ENABLE_LOCAL_CACHE: "true"
     strategy:
       fail-fast: false
       matrix:
@@ -72,6 +83,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: reverse-cow-image
+
+      - name: Download buildx cache artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: buildx-cache
+          path: ${{ env.CACHE_DIR }}
 
       - name: Load image into Docker
         run: |
