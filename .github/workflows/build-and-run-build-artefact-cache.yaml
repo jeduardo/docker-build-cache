@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-cache:
+  test:
     permissions:
       contents: read
       actions: write
@@ -30,10 +30,51 @@ jobs:
       - name: Run unit tests in Docker
         run: make test-docker
 
-      - name: Build (populate cache) via Makefile
+      - name: Archive buildx cache
+        run: tar -cf buildx-cache.tar -C ${{ env.CACHE_DIR }} .
+
+      - name: Upload buildx cache artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildx-cache-test
+          path: buildx-cache.tar
+          retention-days: 1
+
+  build:
+    needs: test
+    permissions:
+      contents: read
+      actions: write
+    runs-on: ubuntu-latest
+    env:
+      CACHE_DIR: .buildx-cache
+      ENABLE_LOCAL_CACHE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set cache scope
+        id: cache-scope
+        uses: ./.github/actions/set-docker-cache-scope
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download buildx cache artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: buildx-cache-test
+          path: .
+
+      - name: Restore buildx cache
+        run: |
+          mkdir -p ${{ env.CACHE_DIR }}
+          tar -xf buildx-cache.tar -C ${{ env.CACHE_DIR }}
+
+      - name: Build image
         run: make build
 
-      # Export the *built image* to a tarball and upload it
       - name: Export image to tarball
         run: |
           docker image ls
@@ -47,18 +88,8 @@ jobs:
           path: reverse-cow.tar
           retention-days: 1
 
-      - name: Archive buildx cache
-        run: tar -cf buildx-cache.tar -C ${{ env.CACHE_DIR }} .
-
-      - name: Upload buildx cache artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: buildx-cache
-          path: buildx-cache.tar
-          retention-days: 1
-
-  say:
-    needs: build-cache
+  run:
+    needs: build
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -81,22 +112,10 @@ jobs:
         id: cache-scope
         uses: ./.github/actions/set-docker-cache-scope
 
-      # Download + load the image built in the previous job
       - name: Download image artifact
         uses: actions/download-artifact@v4
         with:
           name: reverse-cow-image
-
-      - name: Download buildx cache artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: buildx-cache
-          path: .
-
-      - name: Restore buildx cache
-        run: |
-          mkdir -p ${{ env.CACHE_DIR }}
-          tar -xf buildx-cache.tar -C ${{ env.CACHE_DIR }}
 
       - name: Load image into Docker
         run: |
