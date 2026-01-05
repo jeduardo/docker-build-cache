@@ -39,3 +39,8 @@ Runtimes with clean caches:
 - Build using actions and GH cache: ~1m4s
 - Build using make and GH cache: ~1m5s
 - Build using artefact storage: ~43s
+
+## Useful commands
+
+- List cache files: `gh cache list`
+- Clean up GHA cache: `gh cache delete --all`
