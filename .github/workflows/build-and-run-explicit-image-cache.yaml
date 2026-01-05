@@ -12,6 +12,8 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-latest
+    env:
+      ENABLE_LOCAL_CACHE: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +28,9 @@ jobs:
 
       - name: Build (populate cache) via Makefile
         run: make build
+
+      - name: Run unit tests in Docker
+        run: make test-docker
 
       # Export the *built image* to a tarball and upload it
       - name: Export image to tarball

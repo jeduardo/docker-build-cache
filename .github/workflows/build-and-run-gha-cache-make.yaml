@@ -13,11 +13,26 @@ jobs:
       actions: write
     runs-on: ubuntu-latest
     env:
+      CACHE_DIR: .buildx-cache
       ENABLE_GHA_CACHE_SAVE: "true"
       ENABLE_GHA_BACKEND: "true"
+      ENABLE_LOCAL_CACHE: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set cache scope
+        id: cache-scope
+        uses: ./.github/actions/set-docker-cache-scope
+
+      - name: Restore buildx cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: buildx-${{ runner.os }}-${{ steps.cache-scope.outputs.cache_scope }}
+          restore-keys: |
+            buildx-${{ runner.os }}-${{ steps.cache-scope.outputs.cache_scope }}-
+            buildx-${{ runner.os }}-
 
       - name: Set up Docker Buildx
         id: buildx
@@ -25,6 +40,9 @@ jobs:
 
       - name: Expose GitHub runtime for BuildKit GHA cache
         uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Run unit tests in Docker
+        run: make test-docker
 
       - name: Build (populate cache) via Makefile
         run: |
@@ -37,8 +55,10 @@ jobs:
       actions: read
     runs-on: ubuntu-latest
     env:
+      CACHE_DIR: .buildx-cache
       ENABLE_GHA_CACHE_SAVE: "false"
       ENABLE_GHA_BACKEND: "true"
+      ENABLE_LOCAL_CACHE: "true"
     strategy:
       fail-fast: false
       matrix:
@@ -50,6 +70,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set cache scope
+        id: cache-scope
+        uses: ./.github/actions/set-docker-cache-scope
+
+      - name: Restore buildx cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: buildx-${{ runner.os }}-${{ steps.cache-scope.outputs.cache_scope }}
+          restore-keys: |
+            buildx-${{ runner.os }}-${{ steps.cache-scope.outputs.cache_scope }}-
+            buildx-${{ runner.os }}-
 
       - name: Set up Docker Buildx
         id: buildx
