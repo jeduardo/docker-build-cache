@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  BUILDKIT_PROGRESS: plain
+
 jobs:
   test:
     permissions:
