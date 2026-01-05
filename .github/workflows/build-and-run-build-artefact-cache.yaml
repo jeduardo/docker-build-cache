@@ -33,13 +33,6 @@ jobs:
       - name: Build (populate cache) via Makefile
         run: make build
 
-      - name: Upload buildx cache artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: buildx-cache
-          path: ${{ env.CACHE_DIR }}
-          retention-days: 1
-
       # Export the *built image* to a tarball and upload it
       - name: Export image to tarball
         run: |
@@ -52,6 +45,16 @@ jobs:
         with:
           name: reverse-cow-image
           path: reverse-cow.tar
+          retention-days: 1
+
+      - name: Archive buildx cache
+        run: tar -cf buildx-cache.tar -C ${{ env.CACHE_DIR }} .
+
+      - name: Upload buildx cache artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildx-cache
+          path: buildx-cache.tar
           retention-days: 1
 
   say:
@@ -88,7 +91,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: buildx-cache
-          path: ${{ env.CACHE_DIR }}
+          path: .
+
+      - name: Restore buildx cache
+        run: |
+          mkdir -p ${{ env.CACHE_DIR }}
+          tar -xf buildx-cache.tar -C ${{ env.CACHE_DIR }}
 
       - name: Load image into Docker
         run: |
