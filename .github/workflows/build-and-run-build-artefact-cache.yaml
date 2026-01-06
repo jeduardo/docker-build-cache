@@ -1,4 +1,4 @@
-name: Cache images as build artifacts
+name: Cache images as build artefacts
 
 on:
   push:
@@ -21,10 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set cache scope
-        id: cache-scope
-        uses: ./.github/actions/set-docker-cache-scope
 
       - name: Set up Docker Buildx
         id: buildx
@@ -55,10 +51,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set cache scope
-        id: cache-scope
-        uses: ./.github/actions/set-docker-cache-scope
 
       - name: Set up Docker Buildx
         id: buildx
@@ -110,10 +102,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set cache scope
-        id: cache-scope
-        uses: ./.github/actions/set-docker-cache-scope
 
       - name: Download image artifact
         uses: actions/download-artifact@v4
